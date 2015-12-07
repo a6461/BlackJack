@@ -8,6 +8,9 @@ data Value = Ace | Two | Three | Four | Five | Six | Seven | Eight | Nine | Ten 
 
 data Card = Card {v :: Value, s :: Suit}
   deriving (Eq, Show)
+ 
+-- Тип "рука" 
+type Hand = [Card]
   
 -- Bool - флаг наличия туза
 scoreCard :: Card -> Bool -> Int 
