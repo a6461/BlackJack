@@ -11,7 +11,13 @@ data Card = Card {v :: Value, s :: Suit}
  
 -- Тип "рука" 
 type Hand = [Card]
-  
+
+-- Тип "колода"
+type Deck = [Card]
+
+-- Тип "положение в игре" - (колода, счет, ставка)
+type StateGame = (Deck, Int, Int)
+
 -- Bool - флаг наличия туза
 scoreCard :: Card -> Bool -> Int 
 scoreCard (Card Ace _) False = 11 
