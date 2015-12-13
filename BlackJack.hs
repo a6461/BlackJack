@@ -68,3 +68,20 @@ shuffleDeck n
    shuffleDeck' :: Int -> [Card] -> IO Deck 
    shuffleDeck' 0 cs = return cs
    shuffleDeck' i cs = randomCard >>= (\c -> if (elem c cs) then (shuffleDeck' i cs) else (shuffleDeck' (i-1) (c:cs)))
+   
+start :: (Int, Int) -> StateT StateGame IO (Hand, Hand) 
+start (cash, bet) = do 
+  deck <- lift $ shuffleDeck 52 
+  loadStateGame (deck, cash, bet) 
+  p1 <- pullCard 
+  p2 <- pullCard 
+  d1 <- pullCard 
+  d2 <- pullCard 
+  return ([p1, p2], [d1, d2]) 
+
+startMain :: StateT StateGame IO () 
+startMain = do 
+  sp <- start (0,0) 
+  liftIO $ print sp 
+
+main = execStateT startMain ([], 0, 0)
