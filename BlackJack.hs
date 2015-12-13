@@ -1,5 +1,6 @@
 module BlackJack where
 
+import Control.Monad.State
 import System.Random
 
 data Suit = Diamonds | Hearts | Clubs | Spades
@@ -20,9 +21,22 @@ type Deck = [Card]
 -- Тип "положение в игре" - (колода, счет, ставка)
 type StateGame = (Deck, Int, Int)
 
+-- Тип "результат игры"
 data Result = Player | Draw | Dealer
   deriving (Eq, Show)
 
+-- Загрузка "положения в игре"  
+loadStateGame :: StateGame -> StateT StateGame IO ()
+loadStateGame sg = put sg >> return ()
+
+-- Вытаскивание карты
+pullCard :: StateT StateGame IO Card
+pullCard = do
+  (cs, cash, bet) <- get
+  put (tail cs, cash, bet)
+  return $ head cs 
+
+-- Проверка равенства значений карт
 sameValue :: Card -> Card -> Bool
 sameValue (Card v1 _) (Card v2 _) = v1 == v2
   
