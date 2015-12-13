@@ -20,6 +20,12 @@ type Deck = [Card]
 -- Тип "положение в игре" - (колода, счет, ставка)
 type StateGame = (Deck, Int, Int)
 
+data Result = Player | Draw | Dealer
+  deriving (Eq, Show)
+
+sameValue :: Card -> Card -> Bool
+sameValue (Card v1 _) (Card v2 _) = v1 == v2
+  
 -- Bool - флаг наличия туза
 scoreCard :: Card -> Bool -> Int 
 scoreCard (Card Ace _) False = 11 
