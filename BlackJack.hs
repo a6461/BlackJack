@@ -74,14 +74,24 @@ start (cash, bet) = do
   deck <- lift $ shuffleDeck 52 
   loadStateGame (deck, cash, bet) 
   p1 <- pullCard 
-  p2 <- pullCard 
-  d1 <- pullCard 
+  d1 <- pullCard
+  p2 <- pullCard
   d2 <- pullCard 
-  return ([p1, p2], [d1, d2]) 
+  return ([p1, p2], [d1, d2])
+  
+player :: Hand -> StateT StateGame IO Int
+player h = do
+  (lift $ putStr "Your cards: ") >> (lift $ print h)
+  let sh = scoreHand h
+  (lift $ putStr "Your score: ") >> (lift $ print sh)
+  if (sh > 21) then (lift $ putStrLn "Bust. You lose!" >> return sh)
+  else ((lift $ putStr "Take card? ") >> (lift $ getLine) >>= (\s -> if (s == "Y") then (pullCard >>= (\c -> player (c:h))) else (return sh)))
 
 startMain :: StateT StateGame IO () 
 startMain = do 
   sp <- start (0,0) 
-  liftIO $ print sp 
+  lift $ print sp
+  pl_res <- player $ fst sp
+  lift $ print pl_res  
 
 main = execStateT startMain ([], 0, 0)
