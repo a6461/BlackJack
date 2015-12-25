@@ -34,7 +34,34 @@ pullCard :: StateT StateGame IO Card
 pullCard = do
   (cs, cash, bet) <- get
   put (tail cs, cash, bet)
-  return $ head cs 
+  return $ head cs
+
+-- Изменение банка  
+change_cash :: Result -> StateT StateGame IO ()
+change_cash r = do
+  (cs, cash, bet) <- get
+  if (r == Player) then put (cs, cash + bet, bet)
+  else do
+   if (r == Dealer) then put (cs, cash - bet, bet)
+   else put (cs, cash, bet)
+
+-- Информация о текущем банке   
+current_cash :: StateT StateGame IO Int
+current_cash = do
+  (cs, cash, bet) <- get
+  return cash
+
+-- Информация о текущей ставке  
+current_bet :: StateT StateGame IO Int
+current_bet = do
+  (cs, cash, bet) <- get
+  return bet
+
+-- Размер колоды  
+count :: StateT StateGame IO Int
+count = do
+  (cs, cash, bet) <- get
+  return $ length cs
 
 -- Проверка равенства значений карт
 sameValue :: Card -> Card -> Bool
