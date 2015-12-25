@@ -114,6 +114,20 @@ player h = do
   if (sh > 21) then (lift $ putStrLn "Bust. You lose!" >> return sh)
   else ((lift $ putStr "Take card? ") >> (lift $ getLine) >>= (\s -> if (s == "Y") then (pullCard >>= (\c -> player (c:h))) else (return sh)))
 
+-- Моделирует действия дилера
+dealer :: (Hand, Int) -> StateT StateGame IO Result
+dealer (h, plres) = do
+  lift $ putStr "Dealer cards: "
+  lift $ print h
+  let sh = scoreHand h
+  lift $ putStr "Dealer score: "
+  lift $ print sh
+  if (sh > plres && sh < 22) then return Dealer
+  else do
+    if (sh == plres && sh >= 17) then return Draw
+      else do
+	if (sh <= plres && sh < 17) then do c <- pullCard; dealer $ (c:h, plres) else return Player
+  
 startMain :: StateT StateGame IO () 
 startMain = do 
   sp <- start (0,0) 
