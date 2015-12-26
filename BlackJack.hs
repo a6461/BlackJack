@@ -126,13 +126,69 @@ dealer (h, plres) = do
   else do
     if (sh == plres && sh >= 17) then return Draw
       else do
-	if (sh <= plres && sh < 17) then do c <- pullCard; dealer $ (c:h, plres) else return Player
-  
-startMain :: StateT StateGame IO () 
-startMain = do 
-  sp <- start (0,0) 
-  lift $ print sp
-  pl_res <- player $ fst sp
-  lift $ print pl_res  
+    if (sh <= plres && sh < 17) then do c <- pullCard; dealer $ (c:h, plres) else return Player
+	
 
-main = execStateT startMain ([], 0, 0)
+main''' :: (Hand, Hand) -> StateT StateGame IO ()
+main''' (ph, dh) = do
+  lift $ putStr "Your cash: "
+  cash <- current_cash
+  lift $ print cash
+  lift $ putStr "Dealer's first card: "
+  lift $ print $ head dh
+  plres <- player ph
+  if (plres > 21) then do
+    change_cash Dealer
+    lift $ putStr "Win "
+    lift $ print Dealer
+    lift $ putStr "Play more? "
+    s <- lift $ getLine
+    if (s == "Y") then main'' else lift $ putStr "Game over!"
+  else do
+    d <- dealer (dh, plres)
+    change_cash d
+    lift $ putStr "Win "
+    lift $ print d
+    lift $ putStr "Play more? "
+    s <- lift $ getLine
+    if (s == "Y") then main'' else lift $ putStr "Game over!"
+	
+
+main'' :: StateT StateGame IO ()
+main'' = do
+  lift $ putStrLn ""
+  lc <- count
+  if (lc < 18) then do
+	deck <- lift $ shuffleDeck 52
+	cash <- current_cash
+	bet <- current_bet
+	loadStateGame (deck, cash, bet)
+	p1 <- pullCard
+	p2 <- pullCard
+	d1 <- pullCard
+	d2 <- pullCard
+	main''' ([p1,p2],[d1,d2])
+  else do
+	p1 <- pullCard
+	p2 <- pullCard
+	d1 <- pullCard
+	d2 <- pullCard
+	main''' ([p1,p2],[d1,d2])
+
+main' :: StateT StateGame IO ()
+main' = do
+  lift $ putStr "Enter start money: "
+  cash <- lift $ getLine
+  lift $ putStr "Enter bet: "
+  bet <- lift $ getLine
+  lift $ putStrLn ""
+  let c = read cash :: Int
+  let b = read bet :: Int
+  if (c < b) then do
+	sp <- start (c, c)
+	main''' sp
+  else do
+	sp <- start (c, b)
+	main''' sp
+
+main = execStateT main' ([], 0, 0)
