@@ -24,6 +24,28 @@ type StateGame = (Deck, Int, Int)
 -- Тип "результат игры"
 data Result = Player | Draw | Dealer
   deriving (Eq, Show)
+  
+-- Ставки
+bets = [1,5,25,100,500,2000,10000]
+
+-- Список возможных ставок
+printPossibleBets :: Int -> StateT StateGame IO [Int]
+printPossibleBets cash = do
+  let s = [ x | x <- bets, x <= cash ]
+  lift $ print s
+  return s
+  
+-- Ввод ставки
+inputBet :: Int -> StateT StateGame IO Int
+inputBet c = do
+  lift $ putStr "List of possible bets: "
+  bets' <- printPossibleBets c
+  lift $ putStr "Enter bet: "
+  bet <- lift $ getLine
+  lift $ putStrLn ""
+  let b = read bet :: Int
+  if (elem b bets') then return b
+  else inputBet c
 
 -- Загрузка "положения в игре"  
 loadStateGame :: StateGame -> StateT StateGame IO ()
@@ -35,6 +57,13 @@ pullCard = do
   (cs, cash, bet) <- get
   put (tail cs, cash, bet)
   return $ head cs
+
+-- Изменение ставки  
+change_bet :: Int -> StateT StateGame IO ()
+change_bet b = do
+  (cs, cash, bet) <- get
+  put (cs, cash, b)
+  return ()
 
 -- Изменение банка  
 change_cash :: Result -> StateT StateGame IO ()
@@ -158,7 +187,8 @@ main'' = do
   if (lc < 18) then do
    deck <- lift $ shuffleDeck 52
    cash <- current_cash
-   bet <- current_bet
+   bet <- inputBet cash
+   change_bet bet
    loadStateGame (deck, cash, bet)
    p1 <- pullCard
    p2 <- pullCard
@@ -166,6 +196,9 @@ main'' = do
    d2 <- pullCard
    main''' ([p1,p2],[d1,d2])
   else do
+   cash <- current_cash
+   bet <- inputBet cash
+   change_bet bet
    p1 <- pullCard
    p2 <- pullCard
    d1 <- pullCard
@@ -176,11 +209,8 @@ main' :: StateT StateGame IO ()
 main' = do
   lift $ putStr "Enter start money: "
   cash <- lift $ getLine
-  lift $ putStr "Enter bet: "
-  bet <- lift $ getLine
-  lift $ putStrLn ""
   let c = read cash :: Int
-  let b = read bet :: Int
+  b <- inputBet c
   if (c < b) then do
    sp <- start (c, c)
    main''' sp
