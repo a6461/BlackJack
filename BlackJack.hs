@@ -46,6 +46,16 @@ inputBet c = do
   let b = read bet :: Int
   if (elem b bets') then return b
   else inputBet c
+  
+-- Проверка на сплит
+isSplit :: Hand -> Bool
+isSplit [c1,c2]
+  | (fe1 < 10) && (fe2 < 10) = fe1 == fe2
+  | (fe1 > 9) && (fe2 > 9) = True
+  | otherwise = False
+  where
+   fe1 = fromEnum $ v c1;
+   fe2 = fromEnum $ v c2
 
 -- Загрузка "положения в игре"  
 loadStateGame :: StateGame -> StateT StateGame IO ()
@@ -187,23 +197,31 @@ main'' = do
   if (lc < 18) then do
    deck <- lift $ shuffleDeck 52
    cash <- current_cash
-   bet <- inputBet cash
-   change_bet bet
-   loadStateGame (deck, cash, bet)
-   p1 <- pullCard
-   p2 <- pullCard
-   d1 <- pullCard
-   d2 <- pullCard
-   main''' ([p1,p2],[d1,d2])
+   if (cash > 0) then do
+    bet <- inputBet cash
+    change_bet bet
+    loadStateGame (deck, cash, bet)
+    p1 <- pullCard
+    p2 <- pullCard
+    d1 <- pullCard
+    d2 <- pullCard
+    main''' ([p1,p2],[d1,d2])
+   else do
+    liftIO $ putStrLn "You're bankrupt!"
+    liftIO $ return ()
   else do
    cash <- current_cash
-   bet <- inputBet cash
-   change_bet bet
-   p1 <- pullCard
-   p2 <- pullCard
-   d1 <- pullCard
-   d2 <- pullCard
-   main''' ([p1,p2],[d1,d2])
+   if (cash > 0) then do
+    bet <- inputBet cash
+    change_bet bet
+    p1 <- pullCard
+    p2 <- pullCard
+    d1 <- pullCard
+    d2 <- pullCard
+    main''' ([p1,p2],[d1,d2])
+   else do
+    liftIO $ putStrLn "You're bankrupt!"
+    return ()
 
 main' :: StateT StateGame IO ()
 main' = do
