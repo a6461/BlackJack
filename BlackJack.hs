@@ -29,20 +29,20 @@ data Result = Player | Draw | Dealer
 bets = [1,5,25,100,500,2000,10000]
 
 -- Список возможных ставок
-printPossibleBets :: Int -> StateT StateGame IO [Int]
+printPossibleBets :: Int -> IO [Int]
 printPossibleBets cash = do
   let s = [ x | x <- bets, x <= cash ]
-  lift $ print s
+  print s
   return s
   
 -- Ввод ставки
-inputBet :: Int -> StateT StateGame IO Int
+inputBet :: Int -> IO Int
 inputBet c = do
-  lift $ putStr "List of possible bets: "
+  putStr "List of possible bets: "
   bets' <- printPossibleBets c
-  lift $ putStr "Enter bet: "
-  bet <- lift $ getLine
-  lift $ putStrLn ""
+  putStr "Enter bet: "
+  bet <- getLine
+  putStrLn ""
   let b = read bet :: Int
   if (elem b bets') then return b
   else inputBet c
@@ -198,7 +198,7 @@ main'' = do
    deck <- lift $ shuffleDeck 52
    cash <- current_cash
    if (cash > 0) then do
-    bet <- inputBet cash
+    bet <- lift $ inputBet cash
     change_bet bet
     loadStateGame (deck, cash, bet)
     p1 <- pullCard
@@ -212,7 +212,7 @@ main'' = do
   else do
    cash <- current_cash
    if (cash > 0) then do
-    bet <- inputBet cash
+    bet <- lift $ inputBet cash
     change_bet bet
     p1 <- pullCard
     p2 <- pullCard
@@ -228,7 +228,7 @@ main' = do
   lift $ putStr "Enter start money: "
   cash <- lift $ getLine
   let c = read cash :: Int
-  b <- inputBet c
+  b <- lift $ inputBet c
   if (c < b) then do
    sp <- start (c, c)
    main''' sp
